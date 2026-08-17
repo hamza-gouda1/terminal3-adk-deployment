@@ -1,0 +1,32 @@
+{
+  "name": "terminal3-adk-deployment",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Terminal3 ADK Testnet verification and Rust TEE Agent Guard contract",
+  "main": "quickstart.ts",
+  "scripts": {
+    "quickstart": "node --experimental-strip-types quickstart.ts",
+    "register": "node --experimental-strip-types register_contract.ts",
+    "build:contract": "cargo build --target wasm32-wasip1 --release"
+  },
+  "dependencies": {
+    "@terminal3/t3n-sdk": "^4.39.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  },
+  "keywords": [
+    "terminal3",
+    "t3n",
+    "adk",
+    "tee",
+    "agent-guard",
+    "web3",
+    "ai-agent"
+  ],
+  "author": "Hamza Gouda",
+  "license": "MIT"
+}

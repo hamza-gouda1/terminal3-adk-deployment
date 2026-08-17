@@ -1,0 +1,63 @@
+package terminal3:agent-guard;
+
+interface types {
+    record budget-config {
+        agent-did: string,
+        max-tokens-per-epoch: u64,
+        max-usd-micro-per-epoch: u64,
+        epoch-duration-sec: u64,
+        authorized-caller: string,
+    }
+
+    record budget-status {
+        agent-did: string,
+        max-tokens: u64,
+        max-usd-micro: u64,
+        tokens-consumed: u64,
+        usd-micro-consumed: u64,
+        remaining-tokens: u64,
+        remaining-usd-micro: u64,
+        epoch-start-timestamp: u64,
+        epoch-end-timestamp: u64,
+        is-active: bool,
+    }
+
+    record consumption-request {
+        agent-did: string,
+        caller-did: string,
+        tokens-requested: u64,
+        usd-micro-requested: u64,
+        operation-metadata: string,
+    }
+
+    record consumption-result {
+        approved: bool,
+        remaining-tokens: u64,
+        remaining-usd-micro: u64,
+        rejection-reason: option<string>,
+        audit-log-id: string,
+    }
+}
+
+interface kv-store {
+    get: func(key: string) -> option<string>;
+    set: func(key: string, value: string) -> result<_, string>;
+    delete: func(key: string) -> result<_, string>;
+}
+
+interface logging {
+    log-info: func(msg: string);
+    log-warn: func(msg: string);
+    log-error: func(msg: string);
+}
+
+world agent-guard {
+    import logging;
+    import kv-store;
+
+    use types.{budget-config, budget-status, consumption-request, consumption-result};
+
+    export set-budget: func(config: budget-config) -> result<bool, string>;
+    export consume-budget: func(req: consumption-request) -> consumption-result;
+    export get-budget: func(agent-did: string) -> option<budget-status>;
+}
