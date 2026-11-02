@@ -2,7 +2,7 @@
 name = "agent-budget-guard"
 version = "0.1.0"
 edition = "2021"
-authors = ["Hamza Gouda <hamza@terminal3.io>"]
+authors = ["Hamza Gouda <hraafat357@gmail.com>"]
 description = "Confidential TEE Smart Contract for Hardware-Enforced AI Agent Token & Credit Limits on Terminal3 (T3N)"
 
 [lib]

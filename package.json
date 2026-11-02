@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Terminal3 ADK Testnet verification and Rust TEE Agent Guard contract",
-  "main": "quickstart.ts",
+  "main": "scripts/quickstart.ts",
   "scripts": {
-    "quickstart": "node --experimental-strip-types quickstart.ts",
-    "register": "node --experimental-strip-types register_contract.ts",
+    "quickstart": "node --experimental-strip-types scripts/quickstart.ts",
+    "register": "node --experimental-strip-types scripts/register_contract.ts",
     "build:contract": "cargo build --target wasm32-wasip1 --release"
   },
   "dependencies": {
