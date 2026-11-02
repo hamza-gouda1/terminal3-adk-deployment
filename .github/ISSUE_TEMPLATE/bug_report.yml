@@ -1,0 +1,13 @@
+name: Bug report
+description: Something in the contract or the scripts does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations: {required: true}
+  - type: input
+    id: env
+    attributes:
+      label: Node.js and Rust versions

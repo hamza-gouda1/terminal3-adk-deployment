@@ -1,14 +1,15 @@
-// Copyright (c) 2026 Terminal3 Builder Network. All rights reserved.
-// Hardware-Enforced Autonomous Agent Budget & Execution Guard Smart Contract
+// Copyright (c) 2026 Hamza Gouda
+// SPDX-License-Identifier: MIT
+// Agent budget and execution guard contract for the Terminal3 TEE runtime
 
 wit_bindgen::generate!({
     world: "agent-guard",
     path: "wit",
 });
 
+use serde::{Deserialize, Serialize};
 use terminal3::agent_guard::kv_store;
 use terminal3::agent_guard::logging;
-use serde::{Deserialize, Serialize};
 
 struct AgentGuard;
 
@@ -96,7 +97,10 @@ impl Guest for AgentGuard {
         let mut record: StoredBudgetRecord = match serde_json::from_str(&raw_val) {
             Ok(r) => r,
             Err(e) => {
-                logging::log_error(&format!("[TEE Guard CRITICAL] Corrupted budget record: {}", e));
+                logging::log_error(&format!(
+                    "[TEE Guard CRITICAL] Corrupted budget record: {}",
+                    e
+                ));
                 return ConsumptionResult {
                     approved: false,
                     remaining_tokens: 0,
@@ -115,8 +119,12 @@ impl Guest for AgentGuard {
             ));
             return ConsumptionResult {
                 approved: false,
-                remaining_tokens: record.max_tokens_per_epoch.saturating_sub(record.tokens_consumed),
-                remaining_usd_micro: record.max_usd_micro_per_epoch.saturating_sub(record.usd_micro_consumed),
+                remaining_tokens: record
+                    .max_tokens_per_epoch
+                    .saturating_sub(record.tokens_consumed),
+                remaining_usd_micro: record
+                    .max_usd_micro_per_epoch
+                    .saturating_sub(record.usd_micro_consumed),
                 rejection_reason: Some("Agent budget policy is suspended/inactive".to_string()),
                 audit_log_id: format!("SUSPENDED_{}", record.audit_counter),
             };
@@ -130,8 +138,12 @@ impl Guest for AgentGuard {
             ));
             return ConsumptionResult {
                 approved: false,
-                remaining_tokens: record.max_tokens_per_epoch.saturating_sub(record.tokens_consumed),
-                remaining_usd_micro: record.max_usd_micro_per_epoch.saturating_sub(record.usd_micro_consumed),
+                remaining_tokens: record
+                    .max_tokens_per_epoch
+                    .saturating_sub(record.tokens_consumed),
+                remaining_usd_micro: record
+                    .max_usd_micro_per_epoch
+                    .saturating_sub(record.usd_micro_consumed),
                 rejection_reason: Some(format!(
                     "Unauthorized caller: '{}' does not match mandated controller '{}'",
                     req.caller_did, record.authorized_caller
@@ -155,7 +167,9 @@ impl Guest for AgentGuard {
         };
 
         if new_tokens > record.max_tokens_per_epoch {
-            let available = record.max_tokens_per_epoch.saturating_sub(record.tokens_consumed);
+            let available = record
+                .max_tokens_per_epoch
+                .saturating_sub(record.tokens_consumed);
             logging::log_warn(&format!(
                 "[TEE Guard REJECT] Token limit breach! Requested: {}, Available: {}",
                 req.tokens_requested, available
@@ -173,7 +187,10 @@ impl Guest for AgentGuard {
         }
 
         // 4. Hardware-Enforced Financial Micro-USD Ceiling Check
-        let new_usd = match record.usd_micro_consumed.checked_add(req.usd_micro_requested) {
+        let new_usd = match record
+            .usd_micro_consumed
+            .checked_add(req.usd_micro_requested)
+        {
             Some(val) => val,
             None => {
                 return ConsumptionResult {
@@ -187,7 +204,9 @@ impl Guest for AgentGuard {
         };
 
         if new_usd > record.max_usd_micro_per_epoch {
-            let available_usd = record.max_usd_micro_per_epoch.saturating_sub(record.usd_micro_consumed);
+            let available_usd = record
+                .max_usd_micro_per_epoch
+                .saturating_sub(record.usd_micro_consumed);
             logging::log_warn(&format!(
                 "[TEE Guard REJECT] Financial limit breach! Requested: {} uUSD, Available: {} uUSD",
                 req.usd_micro_requested, available_usd
@@ -209,8 +228,12 @@ impl Guest for AgentGuard {
         record.usd_micro_consumed = new_usd;
         record.audit_counter += 1;
 
-        let remaining_tokens = record.max_tokens_per_epoch.saturating_sub(record.tokens_consumed);
-        let remaining_usd_micro = record.max_usd_micro_per_epoch.saturating_sub(record.usd_micro_consumed);
+        let remaining_tokens = record
+            .max_tokens_per_epoch
+            .saturating_sub(record.tokens_consumed);
+        let remaining_usd_micro = record
+            .max_usd_micro_per_epoch
+            .saturating_sub(record.usd_micro_consumed);
         let audit_log_id = format!(
             "TEE_TX_{}_{:08x}",
             record.agent_did.chars().take(8).collect::<String>(),
@@ -246,8 +269,12 @@ impl Guest for AgentGuard {
             max_usd_micro: record.max_usd_micro_per_epoch,
             tokens_consumed: record.tokens_consumed,
             usd_micro_consumed: record.usd_micro_consumed,
-            remaining_tokens: record.max_tokens_per_epoch.saturating_sub(record.tokens_consumed),
-            remaining_usd_micro: record.max_usd_micro_per_epoch.saturating_sub(record.usd_micro_consumed),
+            remaining_tokens: record
+                .max_tokens_per_epoch
+                .saturating_sub(record.tokens_consumed),
+            remaining_usd_micro: record
+                .max_usd_micro_per_epoch
+                .saturating_sub(record.usd_micro_consumed),
             epoch_start_timestamp: record.epoch_start_timestamp,
             epoch_end_timestamp: record.epoch_end_timestamp,
             is_active: record.is_active,

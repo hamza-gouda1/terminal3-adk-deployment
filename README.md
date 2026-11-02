@@ -3,6 +3,7 @@
 [![Terminal3 Testnet](https://img.shields.io/badge/Network-Terminal3%20Testnet-blue.svg)](https://terminal3.io)
 [![WASM WASI](https://img.shields.io/badge/Target-wasm32--wasip1-orange.svg)](https://bytecodealliance.org)
 [![WIT Bindgen](https://img.shields.io/badge/WIT--Bindgen-v0.24.0-purple.svg)](https://github.com/bytecodealliance/wit-bindgen)
+[![ci](https://github.com/hamza-gouda1/terminal3-adk-deployment/actions/workflows/ci.yml/badge.svg)](https://github.com/hamza-gouda1/terminal3-adk-deployment/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > End-to-end Terminal3 ADK Testnet attestation, an AI-agent budget guard contract in Rust compiled to WASM/WASI, and the submission package for the **Superteam Earn Terminal3 Bounty**.

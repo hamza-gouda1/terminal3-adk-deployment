@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the WASI target
+        run: rustup target add wasm32-wasip1
+      - name: Format check
+        run: cargo fmt --check
+      - name: Build the contract
+        run: cargo build --target wasm32-wasip1 --release
+  scripts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type check
+        run: npx tsc --noEmit --allowImportingTsExtensions scripts/quickstart.ts scripts/register_contract.ts --module nodenext --moduleResolution nodenext --target es2022 --strict --skipLibCheck --esModuleInterop
