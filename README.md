@@ -7,7 +7,7 @@
 
 > End-to-end Terminal3 ADK Testnet attestation, an AI-agent budget guard contract in Rust compiled to WASM/WASI, and the submission package for the **Superteam Earn Terminal3 Bounty**.
 
-**Status:** a hackathon submission (August 2026). The handshake and authentication
+**Status:** a submission for a Superteam Earn bounty (August 2026). The handshake and authentication
 script was run against the Terminal3 testnet; the contract compiles to
 `wasm32-wasip1`. It has not been audited and has not run on mainnet. Treat it as
 a worked example, not a finished product.
