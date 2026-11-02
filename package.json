@@ -10,7 +10,7 @@
     "build:contract": "cargo build --target wasm32-wasip1 --release"
   },
   "dependencies": {
-    "@terminal3/t3n-sdk": "^4.39.1",
+    "@terminal3/t3n-sdk": "^5.33.0",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
