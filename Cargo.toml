@@ -8,6 +8,10 @@ description = "Confidential TEE Smart Contract for Hardware-Enforced AI Agent To
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+# Only for hosts that provide a trusted WASI realtime clock.
+wasi-clock = []
+
 [dependencies]
 wit-bindgen = "0.24.0"
 serde = { version = "1.0", features = ["derive"] }

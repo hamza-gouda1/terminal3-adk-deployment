@@ -6,7 +6,7 @@
 [![ci](https://github.com/hamza-gouda1/terminal3-adk-deployment/actions/workflows/ci.yml/badge.svg)](https://github.com/hamza-gouda1/terminal3-adk-deployment/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> End-to-end Terminal3 ADK Testnet attestation, an AI-agent budget guard contract in Rust compiled to WASM/WASI, and the submission package for the **Superteam Earn Terminal3 Bounty**.
+> Terminal3 ADK testnet exploration and an experimental Rust/WASM budget guard prototype for the **Superteam Earn Terminal3 Bounty**.
 
 **Status:** a submission for a Superteam Earn bounty (August 2026). The handshake and authentication
 script was run against the Terminal3 testnet; the contract compiles to
@@ -45,10 +45,10 @@ rustup target add wasm32-wasip1 && npm run build:contract
 - **Network**: Terminal3 (T3N) Testnet
 - **Contract Architecture**: Rust (WASI 0.2 / `wasm32-wasip1`) compiled with `wit-bindgen 0.24.0` in opt-level `z` for confidential TEE execution.
 
-This repository demonstrates the full integration lifecycle with the **Terminal3 Autonomous Decentralized Kernel (ADK)**:
+The **Terminal3 Autonomous Decentralized Kernel (ADK)** work covers:
 1. Cryptographic enclave handshake and DID-bound session authentication using `@terminal3/t3n-sdk`.
-2. Hardware-enforced Confidential Smart Contract (`agent-guard`) executing within Intel SGX / AMD SEV trusted execution environments (TEE).
-3. Provable autonomous agent guardrails that prevent prompt-injections, budget overruns, and unauthorized financial transactions at the hardware memory layer.
+2. An experimental `agent-guard` contract intended for a confidential execution environment.
+3. A budget accounting prototype; enforcement of external actions, authentication, and deployment behavior remain unverified.
 
 ---
 
@@ -79,9 +79,9 @@ This repository demonstrates the full integration lifecycle with the **Terminal3
 |   |   +---------------------------------------------------------------+   |   |
 |   |   |            agent-budget-guard (wasm32-wasip1)                 |   |   |
 |   |   |                                                               |   |   |
-|   |   |   * set-budget(config)       -> Initialized hardware ceiling  |   |   |
-|   |   |   * consume-budget(request)  -> Hardware guardrail check      |   |   |
-|   |   |   * get-budget(agent_did)    -> Real-time state query         |   |   |
+|   |   |   * set-budget(config)       -> Initialize accounting policy  |   |   |
+|   |   |   * consume-budget(request)  -> Accounting limit check      |   |   |
+|   |   |   * get-budget(agent_did)    -> Last committed state         |   |   |
 |   |   +-------------------------------+-------------------------------+   |   |
 |   |                                   | WIT Capability Imports            |   |
 |   |                                   v                                   |   |
@@ -188,7 +188,27 @@ npx tsx scripts/register_contract.ts
 
 ## 🦀 Rust TEE Contract Specification (`agent-guard`)
 
-The `agent-guard` contract acts as an immutable hardware escrow and execution gateway for autonomous AI agents.
+The `agent-guard` contract is a budget accounting prototype, not an escrow or an independently enforced execution gateway. **Do not use it to protect real funds or production workloads.**
+
+The default build fails closed on budget creation and authorized consumption because the [Terminal3 host API](https://docs.terminal3.io/t3n/how-t3n-works/host-api) documents `time` / `clock` as system-only and no tenant clock is established. The optional `wasi-clock` Cargo feature uses the WASI realtime clock for a separate host that explicitly supplies and trusts it; it is not evidence that Terminal3 tenants can use WASI clocks. A missing clock import can prevent module instantiation. Clock rollback within an epoch is not detectable from the existing stored record.
+
+The WIT accepts a caller DID as ordinary input; it does not authenticate that identity, and `set-budget` itself has no authorization check. A host must authenticate and restrict calls, bind identities to requests, and serialize conflicting read-modify-write operations before this prototype can enforce a budget. The local tests include the compiled WASM running in Node with a controlled clock and in-memory host simulation; they do not exercise Terminal3 or a concurrent transaction runtime. `get-budget` reports the last committed epoch and is refreshed by a successful consumption after expiry; it is not a live rollover query. Existing stored records retain their format. The project WIT host imports have not been verified against the current Terminal3 host ABI.
+
+### Run the budget tests
+
+With Rust and Node.js 22 installed, run the native tests and exercise both compiled
+WASM builds. The Node host supplies deterministic clock and storage imports so the
+tests can cross epoch boundaries and simulate clock or write errors without an
+account or network connection.
+
+```sh
+rustup target add wasm32-wasip1
+cargo test --locked
+cargo build --locked --release --target wasm32-wasip1
+node tests/wasm-runtime.mjs target/wasm32-wasip1/release/agent_budget_guard.wasm --default
+cargo build --locked --release --target wasm32-wasip1 --features wasi-clock
+node tests/wasm-runtime.mjs
+```
 
 ### WIT Interface (`wit/world.wit`)
 ```wit
@@ -259,9 +279,9 @@ world agent-guard {
 
 ## 🔒 Security Analysis & Capability Bounds
 
-1. **Principle of Least Privilege**: The contract only imports `kv-store` and `logging`. It cannot make arbitrary network calls, read host filesystem paths, or leak enclave entropy.
+1. **Host capabilities**: The application uses the WIT `kv-store` and `logging` interfaces. The optional `wasi-clock` feature also reads the WASI realtime clock. Host isolation and import permissions are deployment requirements.
 2. **Integer Arithmetic Safety**: All token and micro-USD balances utilize Rust `checked_add` and `saturating_sub` preventing integer overflow exploits.
-3. **Design goal, prompt-injection resistance**: LLMs or autonomous agents can hallucinate or be prompt-injected, but when they trigger an on-chain transaction or API invocation, the hardware enclave intercepts the call and rejects execution if limits are exceeded.
+3. **Design goal, prompt-injection resistance**: A separately integrated enforcement layer would need to intercept external actions and require a successful budget check.
 
 ---
 

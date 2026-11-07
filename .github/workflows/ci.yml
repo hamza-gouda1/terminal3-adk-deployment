@@ -13,12 +13,21 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
       - name: Install the WASI target
         run: rustup target add wasm32-wasip1
       - name: Format check
         run: cargo fmt --check
-      - name: Build the contract
-        run: cargo build --target wasm32-wasip1 --release
+      - name: Test contract behavior
+        run: cargo test --locked
+      - name: Build and exercise the WASM contract
+        run: |
+          cargo build --locked --target wasm32-wasip1 --release
+          node tests/wasm-runtime.mjs target/wasm32-wasip1/release/agent_budget_guard.wasm --default
+          cargo build --locked --target wasm32-wasip1 --release --features wasi-clock
+          node tests/wasm-runtime.mjs
   scripts:
     runs-on: ubuntu-24.04
     steps:
